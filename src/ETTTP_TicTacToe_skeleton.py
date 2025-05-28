@@ -205,17 +205,39 @@ class TTT(tk.Tk):
         If is not, close socket and quit
         '''
         ###################  Fill Out  #######################
-        msg =  "message" # get message using socket
-
-        msg_valid_check = False
-         
+        # 소켓을 통해 메세지 가져오기
+        msg =  self.socket.recv(SIZE).decode()
+        print("Get message\n {}".format(msg))
         
-        if msg_valid_check: # Message is not valid
-            self.socket.close()   
+        msg_valid_check = check_msg(msg, self.recv_ip)
+       
+        # Message is not valid -> 소켓 닫고 종료
+        if msg_valid_check:
+            self.socket.close()
             self.quit()
             return
         else:  # If message is valid - send ack, update board and change turn
+            # 메세지에서 어디로 move할지를 찾아서 move_where에 저장
+            move_where = None
+            # 라인을 들여쓰기로 분리
+            for line in msg.split('\r\n'):
+                # New-Move 뒤에 있을 move 좌표를 저장
+                if line.startswith('New-Move:'):
+                    move_where = line
+                    break
 
+            move_str = move_line.split(':')[1].strip()
+            row, col = eval(move_str)  # "(1, 2)" -> (1, 2)
+            loc = row * 3 + col
+
+            # 4. ACK 메시지 구성 및 전송
+            ack_msg = f"ACK ETTTP/1.0\r\nHost: {self.send_ip}\r\nNew-Move: ({row}, {col})\r\n\r\n"
+            self.socket.sendall(ack_msg.encode())
+
+            
+            
+            
+            
             loc = 5 # received next-move
             
             ######################################################   
