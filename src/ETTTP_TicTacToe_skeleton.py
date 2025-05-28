@@ -225,7 +225,7 @@ class TTT(tk.Tk):
                 if line.startswith('New-Move:'):
                     move_where = line
                     break
-            # 좌표값을 string에 저장하고, 이를 tuple로 바꾼다 (계산을 위해!)
+            # 좌표값을 string에 저장하고, 이를 tuple로 바꿈 (계산을 위해!)
             move_change = move_where.split(':')[1].strip()
             row, col = eval(move_change)
             
@@ -235,6 +235,7 @@ class TTT(tk.Tk):
 
             # 완료한 후 ACK 보내기
             ack_msg = "ACK ETTTP/1.0\r\nHost: {}\r\nNew-Move: ({}, {})\r\n\r\n".format(self.send_ip, row, col)
+            # 메세지 보냄
             self.socket.sendall(ack_msg.encode())
 
             
@@ -298,11 +299,26 @@ class TTT(tk.Tk):
         Function to send message to peer using button click
         selection indicates the selected button
         '''
+        # 3*3 보드에서 좌표계산
         row,col = divmod(selection,3)
+        
         ###################  Fill Out  #######################
 
         # send message and check ACK
+        ack_msg = "SEND ETTTP/1.0\r\nHost: {}\r\nNew-Move: ({}, {})\r\n\r\n".format(self.send_ip, row, col)
+        # 메세지 보냄
+        self.socket.sendall(ack_msg.encode())
         
+        # 상대가 잘 받았는지에 대한 ACK 받기
+        your_ack = self.socket.recv(SIZE).decode()
+        print("Your ACK received:\n{}".format(your_ack))
+        
+        # 에러가 있을 경우 False 반환
+        if check_msg(your_ack, self.recv_ip):
+            print("ACK received Failed")
+            return False
+        
+        # ACK에 이상이 없으면 true
         return True
         ######################################################  
 
