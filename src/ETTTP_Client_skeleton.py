@@ -23,10 +23,10 @@ if __name__ == '__main__':
         
         ###################################################################
         # Receive who will start first from the server
-        #1) 서버가 보내주는 선공 결과 받기
-        data = client_socket.recv(SIZE).decode()
+        # 1) 서버가 보내주는 선공 결과 받기
+        receivedData = client_socket.recv(SIZE).decode()
         print("FirstMover result From Server: {}".format(data))
-        #2) 받은 결과를 분석하기
+        # 2) 받은 결과를 분석하기
         firstmover = None # 선공 결과 저장할 변수 초기화
         # 줄 별로 잘라서 리스트 만들기
         for line in data.split('\r\n'):
@@ -38,9 +38,16 @@ if __name__ == '__main__':
     
     
         ######################### Fill Out ################################
-        # Send ACK 
-        
-        
+        # Send ACK
+        # 1) 누가 FirstMover인지 확인했다는 의미의 ACK 전송
+        if firstmover = "YOU":
+            mymove = "ME"
+        else:
+            mymove = "YOU"
+            
+        ackMessage = "ACK ETTTP/1.0\r\n" + "HOST: {}\r\n".format(MY_IP) +
+                    "First-Move: {}\r\n".format(mymove) + "\r\n"
+                    
         ###################################################################
         
         # Start game
