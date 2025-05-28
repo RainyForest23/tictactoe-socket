@@ -36,10 +36,12 @@ if __name__ == '__main__':
 
         ###################################################################
         # Send start move information to peer
-        if start == 1: 
-            first_move = 'YOU(Client) are First Player. I(Server) am Second Player.'
-        else: 
-            first_move = 'I(Server) am First Player. YOU(Client) are Second Player.'
+        if start == 1:
+            first_move = 'YOU'  # 클라이언트가 먼저 시작
+        else:
+            first_move = 'ME'   # 서버가 먼저 시작
+        
+        
         first_move = 'START ' + first_move + '\n'
         client_socket.send(first_move.encode())
 
