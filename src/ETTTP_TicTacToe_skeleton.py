@@ -225,20 +225,18 @@ class TTT(tk.Tk):
                 if line.startswith('New-Move:'):
                     move_where = line
                     break
-
-            move_str = move_line.split(':')[1].strip()
-            row, col = eval(move_str)  # "(1, 2)" -> (1, 2)
+            # 좌표값을 string에 저장하고, 이를 tuple로 바꾼다 (계산을 위해!)
+            move_change = move_where.split(':')[1].strip()
+            row, col = eval(move_change)
+            
+            # 3*3보드에게 번호를 매핑. 0~8
+            # 2차원을 1차원으로 바꿔 번호를 매기는 row*n +col 공식을 참고함
             loc = row * 3 + col
 
-            # 4. ACK 메시지 구성 및 전송
-            ack_msg = f"ACK ETTTP/1.0\r\nHost: {self.send_ip}\r\nNew-Move: ({row}, {col})\r\n\r\n"
+            # 완료한 후 ACK 보내기
+            ack_msg = "ACK ETTTP/1.0\r\nHost: {}\r\nNew-Move: ({}, {})\r\n\r\n".format(self.send_ip, row, col)
             self.socket.sendall(ack_msg.encode())
 
-            
-            
-            
-            
-            loc = 5 # received next-move
             
             ######################################################   
             
