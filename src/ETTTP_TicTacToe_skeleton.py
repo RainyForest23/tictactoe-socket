@@ -251,7 +251,7 @@ class TTT(tk.Tk):
             #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                 
 
-    def send_debug(self):
+    def send_debug(self): # 텍스트박스 쓸 경우 (turn 고려 필요)
         '''
         Function to send message to peer using input from the textbox
         Need to check if this turn is my turn or not
@@ -269,6 +269,7 @@ class TTT(tk.Tk):
         '''
         Check if the selected location is already taken or not
         '''
+        # New
 
         '''
         Send message to peer
