@@ -331,11 +331,49 @@ class TTT(tk.Tk):
         '''
         # no skeleton
         ###################  Fill Out  #######################
-
+        # ETTTP 프로토콜에 맞게 내가 보낼 메세지 작성
+        my_msg = "RESULT ETTTP/1.0\r\nHost: {}\r\nWinner: {}\r\n\r\n".format(self.send_ip, winner)
+        
+        # get : true 이면 -> 상대 유저가 winner, 상대가 먼저 결과 보냄
+        if get == True:
+            # 상대 메세지 받고
+            your_msg = self.socket.recv(SIZE).decode()
+            print("상대 결과:", your_msg.strip())
+            # 내 결과 보내기
+            self.socket.sendall(my_msg.encode())
+            print("내 결과:", my_msg.strip())
+        
+        # get : false 이면 -> 이 유저가 winner, 먼저 결과 보냄
+        else :
+            # 내 메세지 먼저 보내고
+            self.socket.sendall(my_msg.encode())
+            print("내 결과:", my_msg.strip())
+            # 상대 메세지 받기
+            your_msg = self.socket.recv(SIZE).decode()
+            print("상대 결과:", your_msg.strip())
+            
+        # check_msg() 함수 써서 ETTTP 맞는 지 확인
+        if check_msg(your_msg, self.recv_ip) == False:
+            print("상대의 메세지 형식 오류")
+            return False
+        
+        your_winner = None
+        # 상대 메시지의 winner부분 자르기
+        for line in your_msg.strip().split('\r\n'):
+            if line.startswith('Winner:'):
+                # Winner 뒤에 내용을 변수 your_winner에 저장
+                your_winner = line.split(':', 1)[1].strip()
+                break
+        
+        # 내 winner와 상대의 your_winner 변수 비교
+        if (winner == "ME" and your_winner == "YOU")or (winner == "YOU" and your_winner == "ME"):
+            return True
+        else:
+            print("상대와 나의 winner 결과 다름, 나: {}, 상대: {}".format(winner, your_winner))
+        return False
+            
         
 
-
-        return True
         ######################################################  
 
         
@@ -386,7 +424,8 @@ def check_msg(msg, recv_ip):
     Function that checks if received message is ETTTP format
     '''
     ###################  Fill Out  #######################
-
+    # ETTTP format인지 확인하기
+    
     
 
 
