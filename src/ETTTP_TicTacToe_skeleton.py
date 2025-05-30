@@ -424,10 +424,37 @@ def check_msg(msg, recv_ip):
     Function that checks if received message is ETTTP format
     '''
     ###################  Fill Out  #######################
-    # ETTTP format인지 확인하기
+    # ETTTP format인지 확인하기 -> 메세지를 줄대로 자르고, 각각 있는지 확인
+    linelist = msg.strip().split('\r\n')
     
+    # ETTTP/1.0 확인
+    if len(linelist) == 0 or 'ETTTP/1.0' not in linelist[0]:
+        print("ETTTP 불일치 : 형식 오류")
+        return False
     
-
-
+    # Host 확인
+    correctIP = False
+    for line in linelist:
+        # Host : 뒤의 내용을 check
+        if line.startswith('Host:'):
+            IP = line.split(':', 1)[1].strip()
+            if IP == recv_ip:
+                correctIP = True
+    if correctIP == False:
+        print("ETTTP 불일치 : IP 오류")
+        return False
+    
+    # First-Move, New-Move, Winner 중 하나라도 있으면 OK
+    has_info = False
+    for line in linelist:
+        if line.startswith('First-Move') or line.startswith('New-Move') or line.startswith('Winner'):
+            has_info = True
+            break
+    if not has_info:
+        print("ETTTP 불일치 : 필요 정보 오류")
+        return False
+    
     return True
+    
+
     ######################################################  
