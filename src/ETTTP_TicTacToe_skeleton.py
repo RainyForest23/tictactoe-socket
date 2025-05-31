@@ -212,7 +212,9 @@ class TTT(tk.Tk):
         msg_valid_check = check_msg(msg, self.recv_ip)
        
         # Message is not valid -> 소켓 닫고 종료
-        if msg_valid_check:
+        # (250531) [우림 수정] True 반환하면 유효한거 아닌가..? not valid면 False 반환해야함
+        if not msg_valid_check:
+            print("check_msg()가 False 반환, 프로그램 종료")
             self.socket.close()
             self.quit()
             return
@@ -269,17 +271,61 @@ class TTT(tk.Tk):
         '''
         Check if the selected location is already taken or not
         '''
-        # New
+        debug_move_where = None
+        debug_move_where_coord = None
+        drow = None
+        dcol = None
+
+        lines = d_msg.split('\r\n')
+
+        for line in lines:
+            if line.startswith('New-Move:'):
+                debug_move_where_coord = line.split(':')[1].strip()
+                drow, dcol=eval(debug_move_where_coord)
+                debug_move_where = drow * 3 + dcol
+                break
+
+        if debug_move_where_coord is None:
+            print("좌표 찾을 수 없음")
+            return
+        
+        if drow is None or dcol is None:
+            print("row or col -> None")
+            return
+            
+        if drow < 0 or drow > 2:
+            print("row 범위 오류")
+            return
+        if dcol < 0 or dcol > 2:
+            print("col 범위 오류")
+            return
+            
+        if debug_move_where < 0 or debug_move_where > 8:
+            print("잘못된 위치")
+            return
+
+        # 이미 선택된 위치인지 확인
+        if self.board[debug_move_where] != 0:
+            print("이미 선택된 위치")
+            return
+
 
         '''
         Send message to peer
         '''
         
+        self.socket.sendall(d_msg.encode())
+        print("메세지 전송 완료")
         '''
         Get ack
         '''
+        ack_msg = self.socket.recv(SIZE).decode()
+        print("ACK 받음:", ack_msg[:10], "...")
+        if not check_msg(ack_msg, self.recv_ip):
+            print("ACK 형식 오류")
+            return
         
-        loc = 5 # peer's move, from 0 to 8
+        loc = debug_move_where 
 
         ######################################################  
         
@@ -315,7 +361,8 @@ class TTT(tk.Tk):
         print("Your ACK received:\n{}".format(your_ack))
         
         # 에러가 있을 경우 False 반환
-        if check_msg(your_ack, self.recv_ip):
+         # (250531) [우림 수정] True 반환하면 유효한거 아닌가..? not valid면 False 반환해야함
+        if not check_msg(your_ack, self.recv_ip):
             print("ACK received Failed")
             return False
         
