@@ -271,61 +271,121 @@ class TTT(tk.Tk):
         '''
         Check if the selected location is already taken or not
         '''
-        debug_move_where = None
-        debug_move_where_coord = None
-        drow = None
-        dcol = None
-
-        lines = d_msg.split('\r\n')
-
-        for line in lines:
-            if line.startswith('New-Move:'):
-                debug_move_where_coord = line.split(':')[1].strip()
-                drow, dcol=eval(debug_move_where_coord)
-                debug_move_where = drow * 3 + dcol
-                break
-
-        if debug_move_where_coord is None:
-            print("좌표 찾을 수 없음")
-            return
         
-        if drow is None or dcol is None:
+
+        # =================================================================
+        # [ 1단계: 메시지에서 New-Move 좌표 정보 추출 및 초기화 ]
+        # =================================================================
+
+        # d_msg에서 New-Move: (row, col) 부분을 찾아서 좌표를 계산
+        # 좌표를 계산해서 debug_move_where에 저장
+        debug_move_where = None        # 0~8 사이의 보드 위치 (1차원 배열 인덱스)
+        debug_move_where_coord = None  # "(row, col)" 형태의 원본 좌표 문자열
+        drow = None                    # 행 좌표 (0~2)
+        dcol = None                    # 열 좌표 (0~2)
+
+        # =================================================================
+        # [ 2단계: 메시지 파싱하여 New-Move 좌표 추출 ]
+        # =================================================================
+
+        # 줄바꿈으로 메시지를 나눔 (네트워크 프로토콜에서는 \r\n으로 줄 구분)
+        lines = d_msg.split('\r\n')     # ['Header1: value1', 'Header2: value2', 'New-Move: (1, 2)', ...]
+
+        # 줄바꿈으로 나눈 메시지에서 New-Move: 부분을 찾아서 좌표를 계산
+        for line in lines:              # 각 줄을 순회하면서
+            if line.startswith('New-Move:'):    # 'New-Move:'로 시작하는 줄을 찾음
+                # 만약 'New-Move: (1, 2)' 라면, -> '(1, 2)' 추출
+                debug_move_where_coord = line.split(':')[1].strip()  # ':'로 분리 후 두 번째 부분, 공백 제거
+                
+                # '(1, 2)' 문자열을 실제 정수 좌표로 변환 (eval 사용)
+                drow, dcol = eval(debug_move_where_coord)  # eval("(1, 2)") -> (1, 2) 튜플
+                
+                # 2차원 좌표(row, col)를 1차원 배열 인덱스로 변환
+                # 3x3 보드에서 (row, col) -> row*3 + col
+                # 예: (0,0)->0, (0,1)->1, (0,2)->2, (1,0)->3, (1,1)->4, ...
+                debug_move_where = drow * 3 + dcol
+                break                           # 찾았으므로 반복문 종료
+
+        # =================================================================
+        # [ 3단계: 좌표 추출 성공 여부 검증 ]
+        # =================================================================
+
+        if debug_move_where_coord is None:      # New-Move: 헤더와 이를 통해 추출한 좌표를 찾지 못한 경우
+            print("좌표 찾을 수 없음")
+            return                              # 함수 종료
+
+        if drow is None or dcol is None:        # eval() 실행 실패 또는 좌표 파싱 실패
             print("row or col -> None")
-            return
-            
-        if drow < 0 or drow > 2:
-            print("row 범위 오류")
-            return
-        if dcol < 0 or dcol > 2:
-            print("col 범위 오류")
-            return
-            
-        if debug_move_where < 0 or debug_move_where > 8:
-            print("잘못된 위치")
-            return
+            return                              # 함수 종료
 
-        # 이미 선택된 위치인지 확인
+        # =================================================================
+        # [ 4단계: 좌표 범위 유효성 검사 ]
+        # =================================================================
+            
+        if drow < 0 or drow > 2:               # 행 좌표가 0~2 범위를 벗어난 경우
+            print("row 범위 오류")               # 3x3 보드에서 유효하지 않은 행
+            return                              # 함수 종료
+
+        if dcol < 0 or dcol > 2:               # 열 좌표가 0~2 범위를 벗어난 경우  
+            print("col 범위 오류")               # 3x3 보드에서 유효하지 않은 열
+            return                              # 함수 종료
+            
+        if debug_move_where < 0 or debug_move_where > 8:  # 1차원 인덱스가 0~8 범위를 벗어난 경우
+            print("잘못된 위치")                 # 3x3=9개 칸에서 유효하지 않은 위치
+            return                              # 함수 종료
+
+        # =================================================================
+        # [ 5단계: 게임 보드에서 해당 위치 사용 가능 여부 확인 ]
+        # =================================================================
+
+        # 이미 선택된 위치인지 확인 (보드 값이 0이 아니면 이미 사용됨)
+        # self.board[i] == 0: 빈 칸, != 0: 이미 X 또는 O가 놓여진 칸
         if self.board[debug_move_where] != 0:
-            print("이미 선택된 위치")
-            return
+            print("이미 선택된 위치")            # 중복 수 방지
+            return                              # 함수 종료
 
+
+        # =================================================================
+        # [ 6단계: 피어(상대방)에게 메시지 전송 ]
+        # =================================================================
 
         '''
         Send message to peer
+        상대방에게 내 수를 알리는 메시지 전송
         '''
-        
-        self.socket.sendall(d_msg.encode())
-        print("메세지 전송 완료")
+
+        # 소켓을 통해 d_msg를 상대방에게 전송
+        self.socket.sendall(d_msg.encode())     # 문자열을 바이트로 인코딩하여 전송
+        print("메시지 전송 완료")                # 전송 완료 확인 로그
+
+        # =================================================================
+        # [ 7단계: 상대방으로부터 ACK(응답 확인) 메시지 수신 ]
+        # =================================================================
+
         '''
         Get ack
+        상대방의 응답(ACK) 메시지 받기
         '''
-        ack_msg = self.socket.recv(SIZE).decode()
-        print("ACK 받음:", ack_msg[:10], "...")
-        if not check_msg(ack_msg, self.recv_ip):
-            print("ACK 형식 오류")
-            return
-        
-        loc = debug_move_where 
+
+        # 상대방으로부터 ACK 메시지 수신 (SIZE = 1024 바이트)
+        ack_msg = self.socket.recv(SIZE).decode()   # 바이트를 문자열로 디코딩
+        print("ACK 받음:", ack_msg[:10], "...")     # ACK 메시지의 처음 10글자만 출력 (로그 길이 제한)
+
+        # =================================================================
+        # [ 8단계: 수신한 ACK 메시지 형식 검증 ]
+        # =================================================================
+
+        # check_msg 함수로 ACK 메시지의 형식과 발신자 IP 확인
+        if not check_msg(ack_msg, self.recv_ip):   # 메시지 형식이 올바르지 않거나 IP가 일치하지 않는 경우
+            print("ACK 형식 오류")                  # 프로토콜 위반 또는 잘못된 발신자
+            return                                  # 함수 종료
+
+        # =================================================================
+        # [ 9단계: 최종 처리 - 검증된 위치 정보를 loc 변수에 저장 ]
+        # =================================================================
+
+        loc = debug_move_where                      # 모든 검증을 통과한 유효한 위치를 loc에 저장
+                                                # 이후 게임 로직에서 사용할 최종 위치 정보
 
         ######################################################  
         
