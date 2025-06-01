@@ -29,17 +29,22 @@ class TTT(tk.Tk):
         if client:
             self.myID = 1   #0: server, 1: client
             self.title('34743-01-Tic-Tac-Toe Client')
+            
+            # 기존에 text가 'O'였는데, 'X'로 바꿈 by 과제 요구 사항
             self.user = {'value': self.line_size+1, 'bg': 'blue',
-                     'win': 'Result: You Won!', 'text':'O','Name':"YOU"}
+                     'win': 'Result: You Won!', 'text':'X','Name':"YOU"}
+            # 기존에 text가 'X'였는데, 'O'로 바꿈 by 과제 요구 사항
             self.computer = {'value': 1, 'bg': 'orange',
-                             'win': 'Result: You Lost!', 'text':'X','Name':"ME"}   
+                             'win': 'Result: You Lost!', 'text':'O','Name':"ME"}   
         else:
             self.myID = 0
             self.title('34743-01-Tic-Tac-Toe Server')
+            # 기존에 text가 'X'였는데, 'O'로 바꿈 by 과제 요구 사항
             self.user = {'value': 1, 'bg': 'orange',
-                         'win': 'Result: You Won!', 'text':'X','Name':"ME"}   
+                         'win': 'Result: You Won!', 'text':'O','Name':"ME"}   
+            # 기존에 text가 'O'였는데, 'X'로 바꿈 by 과제 요구 사항
             self.computer = {'value': self.line_size+1, 'bg': 'blue',
-                     'win': 'Result: You Lost!', 'text':'O','Name':"YOU"}
+                     'win': 'Result: You Lost!', 'text':'X','Name':"YOU"}
         ##################################################
 
             
@@ -144,16 +149,19 @@ class TTT(tk.Tk):
         self.create_result_frame()
         self.create_debug_frame()
         self.state = self.active
+
+        # 여기서 선공자를 X, 후공자를 O로 강제 배정하고 있었음
+        # 위의 init에서 이미 배정하였기 떄문에 수정함.
         if start_user == self.myID:
             self.my_turn = 1    
-            self.user['text'] = 'X'
-            self.computer['text'] = 'O'
+            # self.user['text'] = 'X'
+            # self.computer['text'] = 'O'
             self.l_status_bullet.config(fg='green')
             self.l_status['text'] = ['Ready']
         else:
             self.my_turn = 0
-            self.user['text'] = 'O'
-            self.computer['text'] = 'X'
+            # self.user['text'] = 'O'
+            # self.computer['text'] = 'X'
             self.l_status_bullet.config(fg='red')
             self.l_status['text'] = ['Hold']
             _thread.start_new_thread(self.get_move,())
@@ -497,7 +505,8 @@ class TTT(tk.Tk):
         '''
         self.board[move] = player['value']
         self.remaining_moves.remove(move)
-        self.cell[self.last_click]['bg'] = self.board_bg
+
+        # self.cell[self.last_click]['bg'] = self.board_bg
         self.last_click = move
         self.setText[move].set(player['text'])
         self.cell[move]['bg'] = player['bg']
