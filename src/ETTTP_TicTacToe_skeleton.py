@@ -473,7 +473,12 @@ class TTT(tk.Tk):
                 break
         
         # 내 winner와 상대의 your_winner 변수 비교
-        if (winner == "ME" and your_winner == "YOU")or (winner == "YOU" and your_winner == "ME"):
+        # (250601) 승자가 정해지고 나서 게임이 끝나도 Somethings wrong... 이 뜨는 문제 해결
+        # 기존 코드에서는 양쪽에서 같은 결과를 보냈음
+        # e.g. Server가 이겼을 때, 'YOU'라고 보내고(?), Client는 상대방이 이겼으니 'YOU'라고 보내는 경우가 있었음
+        # 기존 코드 
+        # if (winner == "ME" and your_winner == "YOU")or (winner == "YOU" and your_winner == "ME"):
+        if winner == your_winner or (winner == "ME" and your_winner == "YOU") or (winner == "YOU" and your_winner == "ME"):
             return True
         else:
             print("상대와 나의 winner 결과 다름, 나: {}, 상대: {}".format(winner, your_winner))
